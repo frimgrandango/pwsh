@@ -12,7 +12,7 @@ foreach ($event_log in $event_logs) {
     "Seraching {0}" -f $event_log.LogName
     try
     {
-       get-winevent -FilterHashtable @{LogName=$event_log.LogName;StartTime=$time;EndTime=$end_time} -ErrorAction SilentlyContinue
+       get-winevent -FilterHashtable @{LogName=$event_log.LogName;StartTime=$start_time;EndTime=$end_time} -ErrorAction SilentlyContinue
     }
     catch
     {
