@@ -21,7 +21,8 @@ PwSh <-> linux
 - Pipes work the same in linux except everything in Powershell is an Object not a string.
 
 **Commands**
-*getting help*
+
+*Getting Help*
 
 ```
 Update-Help
