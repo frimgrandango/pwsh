@@ -1,14 +1,18 @@
 PwSh <-> linux
+
 **syntax of this file**
+
 - The format of this file shows commands as follows:
     <powershell-cmdlet> - <linux-command>
   Where possible (or useful), I have included additional context around the command that might be helpful.
 - Not every Command is 1:1, when in doubt, check the Microsoft docs (search: <cmdlet> inurl:https://docs.microsoft.com/en-us/powershell/)
 
 **Powershell Cmdlet**
+
 - Commands in powershell are known as cmdlets. Cmdlets perform an action and typically return a Microsoft .NET object to the next command in the pipeline. You can create your own cmdlets from other cmdlets and use them in your shell - https://docs.microsoft.com/en-us/powershell/scripting/developer/cmdlet/cmdlet-overview?view=powershell-7
 
 **tips**
+
 - Powershell is case insensitive
 - Tab completion is your friend
 - Switches can also be tab completed, type '-' and tab away
@@ -18,6 +22,8 @@ PwSh <-> linux
 
 **Commands**
 *getting help*
+
+```
 Update-Help
 #As modules can be imported and changed, you may need to update the help files on a system prior to using them (microsoft has a full online version available as well) however this cmdlet will update the help file on the local machine
 get-help <cmdlet> - man <command>
@@ -75,8 +81,11 @@ Get-NetRoute - route -n
 Get-NetTCPConnection - NetStat
 # We can filter on a bunch of properties, eg to check all established connections - Get-NetTCPConnection -State Established - https://docs.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection?view=win10-ps
 Get-NetIPConfiguration - ifconfig
+```
 
 *Events*
+
+```
 # Events in windows are either in a logfile from our applications (which will be in our public documentation) however we often put them in the following directory:
 "C:\ProgramData\Amazon\<svc>\Logs"
 # a Note on 'C:\ProgramData' - this directory is hidden by default so you will not see it in explorer or the output of ls, you can use the '-hidden'
@@ -86,3 +95,4 @@ get-winevent -FilterHashtable @{LogName="System";Id="<Event_ID>";StartTime=$date
 
 # You can also filter for events in the event log with the below PowerShell command, replacing <EventID> with the event ID you are looking for:
 get-winevent -FilterHashtable @{LogName="System"} | Where-Object {$_.ID -eq <EventID>} | Format-List
+```
