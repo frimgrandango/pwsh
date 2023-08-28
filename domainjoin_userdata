@@ -1,0 +1,51 @@
+<powershell>
+Start-Transcript -OutputDirectory C:\ProgramData\Amazon\EC2-Windows\Launch\Log\ -NoClobber
+Write-Output "Renaming machine: UAT-CMP-001"
+try {
+    Rename-Computer -NewName "UAT-CMP-001" -force
+}
+catch {
+    Write-Error "ERR: Rename-Computer failed, check EC2Launch log: C:\ProgramData\Amazon\EC2-Windows\Launch\Log\UserDataExecution.log"
+    exit 1
+}
+
+
+Write-Output "Checking if SSM Agent is Running"
+try {
+    #try to satrt the service 5 times
+    $i = 0
+    do {
+        $i++
+        Write-Output "Starting SSM Agent, attempt $i"
+        Start-Service AmazonSSMAgent
+        start-sleep -s 10
+    } while ((Get-Service AmazonSSMAgent -ErrorAction SilentlyContinue | Where-Object {$_.Status -ne 'Running'}) -and ($i -lt 5))
+}
+catch {
+    Write-Error "ERR: SSM Agent is not running, check SSM Agent log: %PROGRAMDATA%\Amazon\SSM\Logs\"
+}
+
+
+Write-Output "Getting InstanceId from Metadata Service"
+[string]$token = (Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token-ttl-seconds" = "21600"} -Method PUT -Uri 'http://169.254.169.254/latest/api/token')
+[string]$instanceid = (Invoke-Restmethod -Headers @{"X-aws-ec2-metadata-token" = $token} -uri 'http://169.254.169.254/latest/meta-data/instance-id' -method 'GET')
+
+if ($instanceid -eq $null) {
+    Write-Error -category "InvalidResult" -message "ERR: Unable to get InstanceId from Metadata Service"
+}
+
+Write-Output "Attempting to join domain: fmgaws.private"
+
+try {
+  Send-SSMCommand `
+    -InstanceId $instanceid `
+    -Comment "Test AWS-JoinDirectoryServiceDomain with script" `
+    -DocumentName "AWS-JoinDirectoryServiceDomain" `
+    -Parameter @{'directoryId'=${directory_id}; 'directoryName'=${domain}} `
+    -region "ap-southeast-2"
+}
+catch {
+    Write-Error -category "InvalidResult" -message "ERR: Runing SSM Send Command failed, check EC2Launch log: %PROGRAMDATA%\Amazon\SSM\Logs\"
+}
+Stop-Transcript
+</powershell>
